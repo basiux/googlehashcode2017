@@ -39,13 +39,12 @@ function run (input) {
 	lines.shift()
 
     var cache = []
-    var videos = videoSize.length
-	print("videoSize", isNode?videos:videoSize)
+	print("videoSize", isNode?numberVideos:videoSize)
 
     for (var i = 0; i < numberCacheServers; i += 1) {
         cache[i] = {}
         cache[i].videoWeight = []
-    	for (var j = 0; j < videos; j += 1) {
+    	for (var j = 0; j < numberVideos; j += 1) {
 	        cache[i].videoWeight[j] = {
             	"id": j,
                 "value": 0
@@ -73,9 +72,9 @@ function run (input) {
                 	"id": Number(cacheItem[0]),
                     "latency": Number(cacheItem[1])
                 })
-                if (step === 0) {
-                    endpoint.push(pointToPush)
-                }
+            }
+            if (step === 0) {
+                endpoint.push(pointToPush)
             }
         } else {
             if (step === 0) {
@@ -91,20 +90,19 @@ function run (input) {
             var vSize = Number(videoSize[item.videoId])
             if (vSize <= capacityCacheServer) {
             	var point = endpoint[item.endpointId]
+                var videoSizeScore = (capacityCacheServer + 1) - vSize
                 point.cache.forEach(function(pointCache){
-                	var videoSizeScore = capacityCacheServer - vSize
                     var latencyScore = point.centerLatency - pointCache.latency
                     var requestScore = item.weight * latencyScore
                     var cacheValue = cache[pointCache.id].videoWeight[item.videoId].value
                 	cache[pointCache.id].videoWeight[item.videoId] = {
-                    	"id": Number(item.videoId),
+                    	"id": item.videoId,
                         "value": cacheValue + videoSizeScore * requestScore
                     }
                 })
             }
         }
     })
-
     print("request", isNode?"":request)
 
     print("cache", isNode?"":cache)
