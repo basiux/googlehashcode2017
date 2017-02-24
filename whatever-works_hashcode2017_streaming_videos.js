@@ -83,7 +83,7 @@ function run (input) {
         }
     	request.push(item)
         var vSize = Number(videoSize[item.videoId])
-        if (vSize < capacityCacheServer) {
+        if (vSize <= capacityCacheServer) {
         	var point = endpoint[item.endpointId]
             point.cache.forEach(function(server){
             	var videoSizeScore = capacityCacheServer - vSize
@@ -107,7 +107,7 @@ function run (input) {
     	var solutionItem = []
         topContenders.forEach(function(vWe){
         	vSize = Number(videoSize[vWe.id])
-            if (size + vSize < capacityCacheServer) {
+            if (size + vSize <= capacityCacheServer) {
             	size += vSize
                 solutionItem.push(vWe.id)
             }
