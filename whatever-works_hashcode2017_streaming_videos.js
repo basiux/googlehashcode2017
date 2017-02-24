@@ -53,50 +53,59 @@ function run (input) {
         }
     }
 
-	var item = lines[0].split(' ')
     var endpoint = []
-    while (item.length == 2) {
-    	var point = {
-        	'centerLatency': Number(item[0]),
-            'cache': []
-        }
-	    lines.shift()
-        for (var i = 0; i < item[1]; i += 1) {
-            var cacheItem = lines[0].split(' ')
-        	point.cache.push({
-            	"id": Number(cacheItem[0]),
-                "latency": Number(cacheItem[1])
-            })
-	        lines.shift()
-        }
-        endpoint.push(point)
-        item = lines[0].split(' ')
-    } ; print("endpoint", isNode?endpoint.length:endpoint)
-
+    var step = 0
+    var pointToPush
     var request = []
     lines.forEach( function(item) {
-    	item = item.split(' ')
-        item = {
-        	"videoId": Number(item[0]),
-            "endpointId": Number(item[1]),
-            "weight": Number(item[2]) // requests
-        }
-    	request.push(item)
-        var vSize = Number(videoSize[item.videoId])
-        if (vSize <= capacityCacheServer) {
-        	var point = endpoint[item.endpointId]
-            point.cache.forEach(function(server){
-            	var videoSizeScore = capacityCacheServer - vSize
-                var latencyScore = point.centerLatency - server.latency
-                var requestScore = item.weight * latencyScore
-                var value = cache[server.id].videoWeight[item.videoId].value
-            	cache[server.id].videoWeight[item.videoId] = {
-                	"id": Number(item.videoId),
-                    "value": value + videoSizeScore * requestScore
+        item = item.split(' ')
+        if (step >= 0 && item.length == 2) {
+            if (step === 0) {
+            	pointToPush = {
+                	'centerLatency': Number(item[0]),
+                    'cache': []
                 }
-            })
+                step = Number(item[1]);
+            } else {
+                step -= 1;
+                var cacheItem = item
+            	pointToPush.cache.push({
+                	"id": Number(cacheItem[0]),
+                    "latency": Number(cacheItem[1])
+                })
+                if (step === 0) {
+                    endpoint.push(pointToPush)
+                }
+            }
+        } else {
+            if (step === 0) {
+                step = -1
+                print("endpoint", isNode?endpoint.length:endpoint)
+            }
+            item = {
+            	"videoId": Number(item[0]),
+                "endpointId": Number(item[1]),
+                "weight": Number(item[2]) // requests
+            }
+        	request.push(item)
+            var vSize = Number(videoSize[item.videoId])
+            if (vSize <= capacityCacheServer) {
+            	var point = endpoint[item.endpointId]
+                point.cache.forEach(function(pointCache){
+                	var videoSizeScore = capacityCacheServer - vSize
+                    var latencyScore = point.centerLatency - pointCache.latency
+                    var requestScore = item.weight * latencyScore
+                    var cacheValue = cache[pointCache.id].videoWeight[item.videoId].value
+                	cache[pointCache.id].videoWeight[item.videoId] = {
+                    	"id": Number(item.videoId),
+                        "value": cacheValue + videoSizeScore * requestScore
+                    }
+                })
+            }
         }
-    }) ; print("request", isNode?"":request)
+    })
+
+    print("request", isNode?"":request)
 
     print("cache", isNode?"":cache)
 
@@ -166,10 +175,10 @@ function calculateScore (solution, endpoint, request) {
         var latencyExpected = point.centerLatency
         totalRequestsExpected += item.weight
         var minimumLatency = latencyExpected
-        point.cache.forEach(function(server){
-            if (solution[server.id].indexOf(item.videoId) > -1) {
-                if (server.latency < minimumLatency) {
-                    minimumLatency = server.latency
+        point.cache.forEach(function(pointCache){
+            if (solution[pointCache.id].indexOf(item.videoId) > -1) {
+                if (pointCache.latency < minimumLatency) {
+                    minimumLatency = pointCache.latency
                 }
             }
         })
