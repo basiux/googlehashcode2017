@@ -82,7 +82,7 @@ function run (input) {
             "weight": Number(item[2]) // requests
         }
     	request.push(item)
-        var vSize = videoSize[item.videoId]
+        var vSize = Number(videoSize[item.videoId])
         if (vSize < capacityCacheServer) {
         	var point = endpoint[item.endpointId]
             point.cache.forEach(function(server){
@@ -92,7 +92,7 @@ function run (input) {
                 var value = cache[server.id].videoWeight[item.videoId].value
             	cache[server.id].videoWeight[item.videoId] = {
                 	"id": Number(item.videoId),
-                    "value": value + videoSizeScore * latencyScore
+                    "value": value + videoSizeScore * requestScore
                 }
             })
         }
@@ -101,8 +101,7 @@ function run (input) {
     print("cache", isNode?"":cache)
 
     var solution = []
-    for (var i = 0; i < numberCacheServers; i += 1) {
-        var item = cache[i]
+    cache.forEach(function(item){
     	var topContenders = item.videoWeight.sort(compareValues).reverse()
         var size = 0
     	var solutionItem = []
@@ -114,7 +113,7 @@ function run (input) {
             }
         })
 		solution.push(solutionItem)
-    }
+    })
 
     var solutionStr = solution.length + "\n"
     print("solution", isNode?solutionStr:solution)
