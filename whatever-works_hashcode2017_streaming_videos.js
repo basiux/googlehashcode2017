@@ -156,7 +156,7 @@ function print () {
 
 function calculateScore (solution, endpoint, request) {
 	var totalScore = 0
-    var totalLatencyExpected = 0
+    var totalRequestsExpected = 0
 
 //    var lines = solution.split('\n').slice(1, -1) // remove the last element, which should be an empty one, and the first, which is just the number of elements
 
@@ -165,7 +165,7 @@ function calculateScore (solution, endpoint, request) {
     request.forEach(function(item){
         var point = endpoint[item.endpointId]
         var latencyExpected = point.centerLatency
-        totalLatencyExpected += latencyExpected
+        totalRequestsExpected += item.weight
         var minimumLatency = latencyExpected
         point.cache.forEach(function(server){
             if (solution[server.id].indexOf(item.videoId) > -1) {
@@ -177,7 +177,7 @@ function calculateScore (solution, endpoint, request) {
         totalScore += (latencyExpected - minimumLatency) * item.weight
     })
 
-    totalScore /= totalLatencyExpected
+    totalScore /= totalRequestsExpected
 
     return Math.floor(totalScore * 1000)
 }
