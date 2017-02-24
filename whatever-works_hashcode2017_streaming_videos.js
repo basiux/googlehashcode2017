@@ -32,7 +32,7 @@ function run (input) {
     var numberEndpoints = config[1] // from 0 to E - 1
     var numberRequestDescriptions = config[2]
     var numberCacheServers = config[3] // from 0 to C - 1
-    var capacityCacheServer = parseInt(config[4], 10)
+    var capacityCacheServer = Number(config[4])
     lines.shift()
 
     var videoSize = lines[0].split(' ')
@@ -77,9 +77,9 @@ function run (input) {
     lines.forEach( function(item) {
     	item = item.split(' ')
         item = {
-        	"videoId": item[0],
-            "endpointId": item[1],
-            "weight": item[2] // requests
+        	"videoId": Number(item[0]),
+            "endpointId": Number(item[1]),
+            "weight": Number(item[2]) // requests
         }
     	request.push(item)
         var vSize = videoSize[item.videoId]
@@ -91,7 +91,7 @@ function run (input) {
                 var requestScore = item.weight * latencyScore
                 var value = cache[server.id].videoWeight[item.videoId].value
             	cache[server.id].videoWeight[item.videoId] = {
-                	"id": parseInt(item.videoId, 10),
+                	"id": Number(item.videoId),
                     "value": value + videoSizeScore * latencyScore
                 }
             })
@@ -100,34 +100,36 @@ function run (input) {
 
     print("cache", isNode?"":cache)
 
-    var solutionForCacheServer = []
+    var solution = []
     for (var i = 0; i < numberCacheServers; i += 1) {
         var item = cache[i]
     	var topContenders = item.videoWeight.sort(compareValues).reverse()
         var size = 0
-    	var solution = []
+    	var solutionItem = []
         topContenders.forEach(function(vWe){
-        	vSize = parseInt(videoSize[vWe.id], 10)
+        	vSize = Number(videoSize[vWe.id])
             if (size + vSize < capacityCacheServer) {
             	size += vSize
-                solution.push(vWe.id)
+                solutionItem.push(vWe.id)
             }
         })
-		solutionForCacheServer.push(solution)
+		solution.push(solutionItem)
     }
 
-    var solution = solutionForCacheServer.length + "\n"
-    print("solution", isNode?solution:solutionForCacheServer)
+    var solutionStr = solution.length + "\n"
+    print("solution", isNode?solutionStr:solution)
 
-    solutionForCacheServer.forEach(function(item, i){
-    	solution += i +' '+ item.join(" ") + "\n"
+    solution.forEach(function(item, i){
+    	solutionStr += i +' '+ item.join(" ") + "\n"
     })
+
+    print(calculateScore(solution, endpoint, request))
 
 	if (isNode) {
         (function(){
             var fs = require('fs');
             fileName = fileName.replace(".in","")+".out"
-            fs.writeFile(fileName, solution, function(err) {
+            fs.writeFile(fileName, solutionStr, function(err) {
                 if(err) {
                     return console.log(err)
                 }
@@ -145,7 +147,37 @@ function compareValues (a, b) {
 function print () {
 	var args = Array.prototype.slice.call(arguments)
     if (isNode) args.push(" ")
-	args.push("#time:")
-	args.push(timeElapsed/1000+"s")
+    if (timeElapsed > 0) {
+        args.push("#time:")
+        args.push(timeElapsed/1000+"s")
+    }
     return console.log.apply(this, args)
+}
+
+function calculateScore (solution, endpoint, request) {
+	var totalScore = 0
+    var totalLatencyExpected = 0
+
+//    var lines = solution.split('\n').slice(1, -1) // remove the last element, which should be an empty one, and the first, which is just the number of elements
+
+//	lines.forEach(function(item){
+//        item = item.split(' ')
+    request.forEach(function(item){
+        var point = endpoint[item.endpointId]
+        var latencyExpected = point.centerLatency
+        totalLatencyExpected += latencyExpected
+        var minimumLatency = latencyExpected
+        point.cache.forEach(function(server){
+            if (solution[server.id].indexOf(item.videoId) > -1) {
+                if (server.latency < minimumLatency) {
+                    minimumLatency = server.latency
+                }
+            }
+        })
+        totalScore += (latencyExpected - minimumLatency) * item.weight
+    })
+
+    totalScore /= totalLatencyExpected
+
+    return totalScore * 1000
 }
