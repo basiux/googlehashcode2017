@@ -462,7 +462,7 @@ function randomNeuron (genes, nonInput) {
     }
 
     var count = 0;
-    for (var _ in neurons) { // in pairs
+    for (var x in neurons) { // in pairs
             count = count + 1;
     }
     var n = mathRandom(1, count);
@@ -560,8 +560,8 @@ function nodeMutate (genome) {
 
 function enableDisableMutate (genome, enable) {
     var candidates = [];
-    for (var _ in genome.genes) { // in pairs
-            var gene = genome.genes[_];
+    for (var x in genome.genes) { // in pairs
+            var gene = genome.genes[x];
             if (gene.enabled == !enable) {
                     candidates.push(gene); // table.insert
             }
