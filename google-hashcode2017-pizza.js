@@ -5,6 +5,8 @@ it's also being adjusted to the pizza exercise
 
 // */
 
+const _ = require('./lodash.min') // after clonedeep on http://colintoh.com/blog/lodash-10-javascript-utility-functions-stop-rewriting
+
 //*
 ActualInputs = [];
 ActualOutputs = [];
