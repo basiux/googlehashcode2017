@@ -10,7 +10,7 @@ const _ = require('./lodash.min') // after clonedeep on http://colintoh.com/blog
 //*
 ActualInputs = [];
 ActualOutputs = [];
-Inputs = ActualInputs.length;
+Inputs = ActualInputs.length + 1
 Outputs = ActualOutputs.length;
 
 Population = 300; // species
@@ -31,7 +31,7 @@ DisableMutationChance = 0.4;
 EnableMutationChance = 0.2;
 
 TimeoutConstant = 20;
-Timeout = 1//600 // seconds
+WholeScriptTimeout = 6//60 // seconds
 
 // ok, not quite a toolbox yet, not even a singleton, but we'll get there (if needed) (from toolbox.js)
 
@@ -39,15 +39,11 @@ var pool;
 var rightmost;
 var markedCells;
 var timeout;
-var timeElapsed;
+var timeElapsed = 0.0 // seconds
 
-var score;
-var goal;
-var solution;
-
-if ( isEmpty(pool) ) {
-    initializePool();
-}
+var score = 0
+var goal = 1
+var solution = 'no solution yet'
 
 // those are currently in the "global" scope, but only being used here (from main.js)
 var fpsinterval = 0;
@@ -55,7 +51,7 @@ var mainLoopInterval = null;
 var keepTime = null;
 
 function pizza (str) {
-    var lines = str.split('\n');
+    var lines = str.replace(/\n$/, '').split('\n')
     var config = lines[0].split(' ');
     lines.shift();
     goal = config[0] * config[1];
@@ -68,6 +64,7 @@ function pizza (str) {
     lines.forEach(function(item){
         ActualInputs.push( item.replace(/M/g, 1).replace(/T/g, 0) )
     });
+    Inputs = ActualInputs.length + 1
 
     // still need to figure out what the outputs need to be, and probably adjust the rest of neat around it
     // right now this is meaningless and just as a place holder
@@ -84,25 +81,35 @@ function pizza (str) {
         '9', // last command is being ignored, right now! :(
     ];
 
-    Inputs = goal+1;
-    Outputs = ActualOutputs.length;
+    //Inputs = goal + 1
+    Outputs = ActualOutputs.length
 
-    startMainLoop();
+    if ( isEmpty(pool) ) {
+        initializePool()
+    }
+
+    logScore(
+        'goal:', goal, '  ',
+        'time limit:', WholeScriptTimeout, '  '
+    )
+
+    startMainLoop()
+
+    return solution
 }
 
 function startMainLoop () {
-    mainLoopInterval = setInterval(asyncMainLoop, fpsinterval);
-    keepTime = setInterval(function(){ timeElapsed += 1; }, 1000);
+    mainLoopInterval = setInterval(asyncMainLoop, fpsinterval)
+    keepTime = setInterval(function(){ timeElapsed += .1; }, 100)
 }
 
 function logScore () {
-    console.log(
-        'score: '+ score,
-        'goal: '+ goal,
-        'time elapsed: '+ timeElapsed,
-        'time limit: '+ Timeout,
-        '\n'+ solution
-    );
+    var arg = Array.prototype.slice.call(arguments).concat([
+        'score:', score, '  ',
+        'time elapsed:', timeElapsed.toFixed(2), '  '
+//        '\n'+ solution
+    ])
+    return console.log.apply(console, arg)
 }
 
 function clearMainLoop () {
@@ -134,13 +141,13 @@ function clearMainLoop () {
 
 function asyncMainLoop () { // infinite, async equivalent
     if (score >= goal) {
-        console.log('goal reached! :)');
-        clearMainLoop();
+        console.log('goal reached! :)')
+        clearMainLoop()
     }
 
-    if (timeElapsed > Timeout) {
-        console.log('time limit '+ Timeout +' reached! :(');
-        clearMainLoop();
+    if (timeElapsed > WholeScriptTimeout) {
+        console.log('time limit '+ WholeScriptTimeout +' reached! :(')
+        clearMainLoop()
     }
 
 //    try {
@@ -184,20 +191,19 @@ function aiMainLoop () {
 //            writeFile("autobackup.pool");
         }
 
-        console.log(
-            "gen: " + pool.generation,
-            "species: " + pool.currentSpecies,
-            "genome: " + pool.currentGenome,
-            "fitness: " + fitness
-        );
-        logScore();
+        logScore(
+            "gen:", pool.generation, "  ",
+            "species:", pool.currentSpecies, "  ",
+            "genome:", pool.currentGenome, "  ",
+            "fitness:", fitness, "  "
+        )
 
         pool.currentSpecies = 0; // array bonds
         pool.currentGenome = 0; // array bonds
         while ( fitnessAlreadyMeasured() ) {
-            nextGenome();
+            nextGenome()
         }
-        initializeRun();
+        initializeRun()
     }
 
     var measured = 0;
@@ -331,9 +337,9 @@ function newNeuron () {
 }
 
 function generateNetwork (genome) {
-    var network = {};
-    network.inNeurons = [];
-    network.outNeurons = [];
+    var network = {}
+    network.inNeurons = []
+    network.outNeurons = []
 
     for (var i=0; i<Inputs; i++) {
         network.inNeurons[i] = newNeuron();
@@ -443,39 +449,29 @@ function crossover (g1, g2) {
 }
 
 function randomNeuron (genes, nonInput) {
-    var neurons = [];
+    var inNeurons = []
+    var outNeurons = []
     if ( !nonInput ) {
-            for (var i=0; i<Inputs; i++) {
-                    neurons[i] = true;
-            }
+        for (var i=0; i<Inputs; i++) {
+            inNeurons[i] = true
+        }
     }
     for (var o=0; o<Outputs; o++) {
-            neurons[MaxNodes+o] = true;
+        outNeurons[o] = true
     }
     for (var i=0; i<genes.length; i++) {
-            if ( !nonInput || genes[i].into >= Inputs) {
-                    neurons[genes[i].into] = true;
-            }
-            if ( !nonInput || genes[i].out >= Inputs) {
-                    neurons[genes[i].out] = true;
-            }
+        if ( !nonInput || genes[i].into >= Inputs) {
+            inNeurons[genes[i].into] = true
+        }
+        if ( !nonInput || genes[i].out >= Inputs) {
+            outNeurons[genes[i].out] = true
+        }
     }
 
-    var count = 0;
-    for (var x in neurons) { // in pairs
-            count = count + 1;
-    }
-    var n = mathRandom(1, count);
+    var neurons = _.merge(inNeurons, outNeurons)
+    if (neurons) return _.sample(neurons) // not using mathRandom!
 
-    for (var k in neurons) { // in pairs
-            var v = neurons[k];
-            n = n-1;
-            if (n === 0) {
-                    return k;
-            }
-    }
-
-    return 0;
+    return 0
 }
 
 function containsLink (genes, link) {
