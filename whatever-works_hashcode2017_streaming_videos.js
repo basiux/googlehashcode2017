@@ -159,6 +159,7 @@ function run (input) {
 
                 console.log("saved output to file "+fileName)
             })
+            clearInterval(keepingTime)
         })()
     }
 }
