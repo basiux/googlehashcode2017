@@ -37,10 +37,9 @@ function run (input) {
 
     const videoSize = lines[0].split(' ')
 	lines.shift()
+    print("videoSize", isNode?numberVideos:videoSize)
 
     let cache = []
-	print("videoSize", isNode?numberVideos:videoSize)
-
     for (let i = 0; i < numberCacheServers; i += 1) {
         cache[i] = {}
         cache[i].videoWeight = []
@@ -52,6 +51,7 @@ function run (input) {
             }
         }
     }
+    print("cacheServers", isNode?numberCacheServers:cache)
 
     let endpoint = []
     let step = 0
@@ -65,9 +65,9 @@ function run (input) {
                 	'centerLatency': Number(item[0]),
                     'cache': []
                 }
-                step = Number(item[1]);
+                step = Number(item[1])
             } else {
-                step -= 1;
+                step -= 1
                 let cacheItem = item
             	pointToPush.cache.push({
                 	"id": Number(cacheItem[0]),
@@ -112,33 +112,32 @@ function run (input) {
     let solution = []
     cache.forEach(function(item){
     	let topWeights = item.videoWeight.sort((a,b) => {
-            return a.value - b.value;
+            return a.value - b.value
         }).reverse()
-        let size = 0
     	let solutionWeights = []
-        topWeights.forEach(vWe => {
-        	let vSize = Number(videoSize[vWe.id])
-            if (size + vSize <= capacityCacheServer) {
-            	size += vSize
-                solutionWeights.push(vWe.id)
-            }
-        })
-        let topSmalls = item.videoWeight.sort((a,b) => {
-            return a.value * a.videoSize - b.value * b.videoSize;
+        calculateWeights(solutionWeights)
+
+        topWeights = item.videoWeight.sort((a,b) => {
+            return a.value * a.videoSize - b.value * b.videoSize
         }).reverse()
-        size = 0
         let solutionSmalls = []
-        topSmalls.forEach(vWe => {
-        	let vSize = Number(videoSize[vWe.id])
-            if (size + vSize <= capacityCacheServer) {
-            	size += vSize
-                solutionSmalls.push(vWe.id)
-            }
-        })
-		solution.push(solutionWeights)
+        calculateWeights(solutionSmalls)
+
+        function calculateWeights (sol) {
+            let size = 0
+            topWeights.forEach(vWe => {
+            	let vSize = Number(videoSize[vWe.id])
+                if (size + vSize <= capacityCacheServer) {
+                	size += vSize
+                    sol.push(vWe.id)
+                }
+            })
+        }
+
+		solution.push(solutionSmalls)
     })
 
-    let solutionStr = solution.length + "\n"
+    let solutionStr = solution.length + "\n" // at least have an idea
     print("solution", isNode?solutionStr:solution)
 
     solution.forEach((item, i) => {
@@ -149,7 +148,7 @@ function run (input) {
 
 	if (isNode) {
         (function(){
-            let fs = require('fs');
+            let fs = require('fs')
             fileName = fileName.replace(".in","")+".out"
             fs.writeFile(fileName, solutionStr, err => {
                 if(err) {
