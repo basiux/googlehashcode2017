@@ -4,6 +4,7 @@ var isNode = (typeof module !== 'undefined' && module.exports)
 if (isNode) var fileName = process.argv[2]
 
 var timeStarted = now()
+var timeLast = 0
 
 if (isNode) {
     (function(){
@@ -168,7 +169,11 @@ function print () {
     if (timeElapsed > 0) {
         args.push("#time:")
         args.push(timeElapsed.toFixed(3)+"s")
+        let last = timeElapsed - timeLast
+        args.push("#diff:")
+        args.push(last.toFixed(3)+"s")
     }
+    timeLast = timeElapsed
     return console.log.apply(this, args)
 }
 
