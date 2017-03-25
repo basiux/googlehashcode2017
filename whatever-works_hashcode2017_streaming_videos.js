@@ -5,6 +5,9 @@ if (isNode) var fileName = process.argv[2]
 
 var timeStarted = now()
 var timeLast = 0
+var timeDelay = 0
+
+var timeLimitWithoutPrinting = 10
 
 if (isNode) {
     (function(){
@@ -50,6 +53,7 @@ function run (input) {
                 "value": 0, //( capacityCacheServer - Number(videoSize[j]) ) * 1000,
                 "videoSize": Number(videoSize[j]) / capacityCacheServer
             }
+            printIfDelay("processing cacheServers", cache[i].videoWeight[j])
         }
     }
     print("cacheServers", isNode?numberCacheServers:cache)
@@ -86,7 +90,7 @@ function run (input) {
             item = {
             	"videoId": Number(item[0]),
                 "endpointId": Number(item[1]),
-                "weight": Number(item[2]) // requests
+                "weight": Number(item[2]) // number of requests
             }
         	request.push(item)
             let vSize = Number(videoSize[item.videoId])
@@ -102,8 +106,10 @@ function run (input) {
                     	"id": item.videoId,
                         "value": cacheValue + requestScore //* videoSizeScore
                     }
+                    printIfDelay("processing request", item, pointCache)
                 })
             }
+            printIfDelay("processing request", item)
         }
     })
     print("request", isNode?"":request)
@@ -163,18 +169,39 @@ function run (input) {
 }
 
 function print () {
+    let time = timeSinceLastPrint()
+    let timeElapsed = time[0]
 	let args = Array.prototype.slice.call(arguments)
     if (isNode) args.push(" ")
-    let timeElapsed = (now() - timeStarted) / 1000
     if (timeElapsed > 0) {
         args.push("#time:")
         args.push(timeElapsed.toFixed(3)+"s")
-        let last = timeElapsed - timeLast
+        let last = time[1]
         args.push("#diff:")
         args.push(last.toFixed(3)+"s")
     }
     timeLast = timeElapsed
     return console.log.apply(this, args)
+}
+
+function printIfDelay () {
+    let time = timeSinceLastPrint()
+    let timeElapsed = time[0]
+    let delay = timeElapsed - timeDelay
+    if (delay < timeLimitWithoutPrinting) return
+    let args = Array.prototype.slice.call(arguments)
+    if (isNode) args.push(" ")
+    if (timeElapsed > 0) {
+        args.push("#time:")
+        args.push(timeElapsed.toFixed(0)+"s")
+    }
+    timeDelay = timeElapsed
+    return console.log.apply(this, args)
+}
+
+function timeSinceLastPrint () {
+    let timeElapsed = (now() - timeStarted) / 1000
+    return [timeElapsed, timeElapsed - timeLast]
 }
 
 function now () {
