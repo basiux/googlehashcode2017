@@ -3,8 +3,7 @@ var isNode = (typeof module !== 'undefined' && module.exports)
 
 if (isNode) var fileName = process.argv[2]
 
-var timeElapsed = 0
-var keepingTime = setInterval(function(){ timeElapsed += 1 }, 1)
+var timeStarted = now()
 
 if (isNode) {
     (function(){
@@ -159,7 +158,6 @@ function run (input) {
 
                 console.log("saved output to file "+fileName)
             })
-            clearInterval(keepingTime)
         })()
     }
 }
@@ -167,11 +165,23 @@ function run (input) {
 function print () {
 	let args = Array.prototype.slice.call(arguments)
     if (isNode) args.push(" ")
+    let timeElapsed = now() - timeStarted
     if (timeElapsed > 0) {
         args.push("#time:")
-        args.push(timeElapsed/1000+"s")
+        args.push(Math.trunc(timeElapsed)+"ms")
     }
     return console.log.apply(this, args)
+}
+
+function now () {
+    let result
+    if (isNode) {
+        let hrtime = process.hrtime() // nanoseconds
+        result = hrtime[0] * 1000000 + hrtime[1] / 1000
+    } else {
+        result = performance.now() // miliseconds
+    }
+    return result
 }
 
 function calculateScore (solution, endpoint, request) {
