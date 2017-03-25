@@ -104,7 +104,7 @@ function run (input) {
                     let requestScore = item.weight * latencyScore
                     //print(item.endpointId, pointCache, cache.length, pointCache.id)
                     let cacheValue = cache[pointCache.id].videoWeight[item.videoId].value
-                    cacheValue += requestScore * (vSize / capacityCacheServer)
+                    cacheValue += requestScore / (vSize / capacityCacheServer)
                 	cache[pointCache.id].videoWeight[item.videoId] = {
                     	id: item.videoId,
                         value: cacheValue,
