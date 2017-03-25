@@ -49,9 +49,9 @@ function run (input) {
         cache[i].videoWeight = [] // used to calculate score based on every factor
     	for (let j = 0; j < numberVideos; j += 1) {
 	        cache[i].videoWeight[j] = {
-            	"id": j,
-                "value": 0, //( capacityCacheServer - Number(videoSize[j]) ) * 1000,
-                "videoSize": Number(videoSize[j]),
+            	id: j,
+                value: 0, //( capacityCacheServer - Number(videoSize[j]) ) * 1000,
+                videoSize: Number(videoSize[j]),
             }
             printIfDelay("processing cacheServers", cache[i].videoWeight[j])
         }
@@ -67,16 +67,16 @@ function run (input) {
         if (step >= 0 && item.length == 2) { // cache servers
             if (step === 0) {
             	pointToPush = {
-                	'centerLatency': Number(item[0]),
-                    'cache': []
+                	centerLatency: Number(item[0]),
+                    cache: []
                 }
                 step = Number(item[1])
             } else {
                 step -= 1
                 let cacheItem = item
             	pointToPush.cache.push({
-                	"id": Number(cacheItem[0]),
-                    "latency": Number(cacheItem[1])
+                	id: Number(cacheItem[0]),
+                    latency: Number(cacheItem[1])
                 })
             }
             if (step === 0) {
@@ -88,9 +88,9 @@ function run (input) {
                 print("endpoint", isNode?endpoint.length:endpoint)
             }
             item = {
-            	"videoId": Number(item[0]),
-                "endpointId": Number(item[1]),
-                "weight": Number(item[2]) // number of requests
+            	videoId: Number(item[0]),
+                endpointId: Number(item[1]),
+                weight: Number(item[2]) // number of requests
             }
         	request.push(item)
             let vSize = Number(videoSize[item.videoId])
@@ -104,9 +104,9 @@ function run (input) {
                     let cacheItem = cache[pointCache.id].videoWeight[item.videoId]
                     let cacheValue = cacheItem.value + requestScore * (cacheItem.videoSize / capacityCacheServer)
                 	cache[pointCache.id].videoWeight[item.videoId] = {
-                    	"id": item.videoId,
-                        "value": cacheValue,
-                        "videoSize": cacheItem.videoSize,
+                    	id: item.videoId,
+                        value: cacheValue,
+                        videoSize: cacheItem.videoSize,
                     }
                     if (cacheValue > cache[0].videoWeight[item.videoId].value) {
                         cache.move(pointCache.id, 0)
