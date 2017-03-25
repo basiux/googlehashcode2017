@@ -45,8 +45,10 @@ function run (input) {
 
     let cache = []
     for (let i = 0; i < numberCacheServers; i += 1) {
-        cache[i] = {}
-        cache[i].videoWeight = [] // used to calculate score based on every factor
+        cache[i] = {
+            id: i,
+            videoWeight: [], // used to calculate score based on every factor
+        }
     	for (let j = 0; j < numberVideos; j += 1) {
 	        cache[i].videoWeight[j] = {
             	id: j,
@@ -101,15 +103,12 @@ function run (input) {
                     let latencyScore = point.centerLatency - pointCache.latency
                     let requestScore = item.weight * latencyScore
                     //print(item.endpointId, pointCache, cache.length, pointCache.id)
-                    let cacheItem = cache[pointCache.id].videoWeight[item.videoId]
-                    let cacheValue = cacheItem.value + requestScore * (cacheItem.videoSize / capacityCacheServer)
+                    let cacheValue = cache[pointCache.id].videoWeight[item.videoId].value
+                    cacheValue += requestScore * (vSize / capacityCacheServer)
                 	cache[pointCache.id].videoWeight[item.videoId] = {
                     	id: item.videoId,
                         value: cacheValue,
-                        videoSize: cacheItem.videoSize,
-                    }
-                    if (cacheValue > cache[0].videoWeight[item.videoId].value) {
-                        cache.move(pointCache.id, 0)
+                        videoSize: vSize,
                     }
                     printIfDelay("processing request", item, pointCache)
                 })
@@ -122,21 +121,20 @@ function run (input) {
     print("cache", isNode?"":cache)
 
     let solution = []
-    cache.forEach(function(item){
-        let topWeights = item.videoWeight
-        let solutionSorted = calculateWeights()
-/*
-    	topWeights = item.videoWeight.sort((a,b) => {
-            return a.value - b.value
-        }).reverse()
-    	let solutionWeights = calculateWeights()
+    cache.forEach(item => {
+        cache.forEach(compare => {
+            if (compare.id === item.id) return
+            if (item.value > compare.value) {
+                // trying to figure out a way to consider other weights depending on video size
+            }
+        })
 
-        topWeights = item.videoWeight.sort((a,b) => {
-            return a.value * a.videoSize - b.value * b.videoSize
-        }).reverse()
-        let solutionSmalls = calculateWeights()
-*/
-        function calculateWeights () {
+    	let solutionWeights = calculateWeights((a,b)=> a.value - b.value)
+
+        //let solutionSmalls = calculateWeights((a,b)=> a.value * a.videoSize - b.value * b.videoSize)
+
+        function calculateWeights (sortWeights) {
+            let topWeights = item.videoWeight.sort(sortWeights).reverse()
             let sol = []
             let size = 0
             topWeights.forEach(vWe => {
@@ -149,7 +147,7 @@ function run (input) {
             return sol
         }
 
-		solution.push(solutionSorted)
+		solution.push(solutionWeights)
     })
 
     let solutionStr = solution.length + "\n" // at least have an idea
