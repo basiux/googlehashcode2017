@@ -60,7 +60,7 @@ function run (input) {
     let request = []
     lines.forEach(item => {
         item = item.split(' ')
-        if (step >= 0 && item.length == 2) {
+        if (step >= 0 && item.length == 2) { // cache servers
             if (step === 0) {
             	pointToPush = {
                 	'centerLatency': Number(item[0]),
@@ -78,7 +78,7 @@ function run (input) {
             if (step === 0) {
                 endpoint.push(pointToPush)
             }
-        } else {
+        } else { // requests
             if (step === 0) {
                 step = -1
                 print("endpoint", isNode?endpoint.length:endpoint)
@@ -115,9 +115,6 @@ function run (input) {
     	let topWeights = item.videoWeight.sort((a,b) => {
             return a.value - b.value;
         }).reverse()
-        let topSmalls = item.videoWeight.sort((a,b) => {
-            return a.value * a.videoSize - b.value * b.videoSize;
-        }).reverse()
         let size = 0
     	let solutionWeights = []
         topWeights.forEach(vWe => {
@@ -127,6 +124,9 @@ function run (input) {
                 solutionWeights.push(vWe.id)
             }
         })
+        let topSmalls = item.videoWeight.sort((a,b) => {
+            return a.value * a.videoSize - b.value * b.videoSize;
+        }).reverse()
         size = 0
         let solutionSmalls = []
         topSmalls.forEach(vWe => {
@@ -136,7 +136,7 @@ function run (input) {
                 solutionSmalls.push(vWe.id)
             }
         })
-		solution.push(solutionSmalls)
+		solution.push(solutionWeights)
     })
 
     let solutionStr = solution.length + "\n"
