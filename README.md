@@ -1,4 +1,4 @@
-# google hash-code 2017
+# google hash code 2017
 
 ## [team whatever works #1832](https://hashcode.withgoogle.com/hashcode_2017.html#1832)
 
