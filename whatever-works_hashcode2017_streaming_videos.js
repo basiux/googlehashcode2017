@@ -165,10 +165,10 @@ function run (input) {
 function print () {
 	let args = Array.prototype.slice.call(arguments)
     if (isNode) args.push(" ")
-    let timeElapsed = now() - timeStarted
+    let timeElapsed = (now() - timeStarted) / 1000
     if (timeElapsed > 0) {
         args.push("#time:")
-        args.push(Math.trunc(timeElapsed)+"ms")
+        args.push(timeElapsed.toFixed(3)+"s")
     }
     return console.log.apply(this, args)
 }
@@ -177,7 +177,7 @@ function now () {
     let result
     if (isNode) {
         let hrtime = process.hrtime() // nanoseconds
-        result = hrtime[0] * 1000000 + hrtime[1] / 1000
+        result = hrtime[0] * 1000 + hrtime[1] / 1000000
     } else {
         result = performance.now() // miliseconds
     }
