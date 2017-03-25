@@ -47,7 +47,8 @@ function run (input) {
     	for (var j = 0; j < numberVideos; j += 1) {
 	        cache[i].videoWeight[j] = {
             	"id": j,
-                "value": 0
+                "value": 0, //( capacityCacheServer - Number(videoSize[j]) ) * 1000,
+                "videoSize": Number(videoSize[j]) / capacityCacheServer
             }
         }
     }
@@ -90,14 +91,15 @@ function run (input) {
             var vSize = Number(videoSize[item.videoId])
             if (vSize <= capacityCacheServer) {
             	var point = endpoint[item.endpointId]
-                var videoSizeScore = (capacityCacheServer + 1) - vSize
+                //var videoSizeScore = ((capacityCacheServer + 1) - vSize) / capacityCacheServer
                 point.cache.forEach(function(pointCache){
                     var latencyScore = point.centerLatency - pointCache.latency
                     var requestScore = item.weight * latencyScore
+//console.log(item.endpointId, pointCache, cache.length, pointCache.id)
                     var cacheValue = cache[pointCache.id].videoWeight[item.videoId].value
                 	cache[pointCache.id].videoWeight[item.videoId] = {
                     	"id": item.videoId,
-                        "value": cacheValue + videoSizeScore * requestScore
+                        "value": cacheValue + requestScore //* videoSizeScore
                     }
                 })
             }
@@ -109,17 +111,31 @@ function run (input) {
 
     var solution = []
     cache.forEach(function(item){
-    	var topContenders = item.videoWeight.sort(compareValues).reverse()
+    	var topWeights = item.videoWeight.sort(function(a,b){
+            return a.value - b.value;
+        }).reverse()
+        var topSmalls = item.videoWeight.sort(function(a,b){
+            return a.value * a.videoSize - b.value * b.videoSize;
+        }).reverse()
         var size = 0
-    	var solutionItem = []
-        topContenders.forEach(function(vWe){
+    	var solutionWeights = []
+        topWeights.forEach(function(vWe){
         	vSize = Number(videoSize[vWe.id])
             if (size + vSize <= capacityCacheServer) {
             	size += vSize
-                solutionItem.push(vWe.id)
+                solutionWeights.push(vWe.id)
             }
         })
-		solution.push(solutionItem)
+        size = 0
+        var solutionSmalls = []
+        topSmalls.forEach(function(vWe){
+        	vSize = Number(videoSize[vWe.id])
+            if (size + vSize <= capacityCacheServer) {
+            	size += vSize
+                solutionSmalls.push(vWe.id)
+            }
+        })
+		solution.push(solutionSmalls)
     })
 
     var solutionStr = solution.length + "\n"
@@ -144,10 +160,6 @@ function run (input) {
             })
         })()
     }
-}
-
-function compareValues (a, b) {
-    return a.value - b.value;
 }
 
 function print () {
