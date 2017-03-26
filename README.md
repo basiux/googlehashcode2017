@@ -10,4 +10,6 @@ I somehow managed to finish the challenge 30 minutes before the end, but it was 
 
 for the next few hours there was a new submitting system, but I was already almost done with emulating the evaluation. and for the next few days I've tried to improve the result without any success...
 
-now I shall try again. harder!
+I did try again a lot later, without any significant improvement. couldn't focus on searching for a solution ready online, didn't know what to look for. the problem is figuring out neighbors. if there are enough small ones, the current "solutionRanks" work better, which calculates a ranking value based on each file size (in each cache server) along with its score. if there are more big files, maybe the "solutionWeights" is better, which just calculate the score for each file, in each cache server.
+
+in any case, I figure it's better to focus on the pizza issue next as to work on what matters! the neat mariox ai. :)
