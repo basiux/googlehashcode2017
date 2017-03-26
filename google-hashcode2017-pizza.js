@@ -1,3 +1,6 @@
+"use strict"
+const isNode = (typeof module !== 'undefined' && module.exports)
+
 /*
 
 for now this is mostly parts taken from mariox many files
@@ -8,30 +11,30 @@ it's also being adjusted to the pizza exercise
 const _ = require('./lodash.min') // after clonedeep on http://colintoh.com/blog/lodash-10-javascript-utility-functions-stop-rewriting
 
 //*
-ActualInputs = [];
-ActualOutputs = [];
-Inputs = ActualInputs.length + 1
-Outputs = ActualOutputs.length;
+var ActualInputs = []
+var ActualOutputs = []
+var Inputs = ActualInputs.length + 1
+var Outputs = ActualOutputs.length
 
-Population = 300; // species
-DeltaDisjoint = 2.0;
-DeltaWeights = 0.4;
-DeltaThreshold = 1.0;
+var Population = 300 // species
+var DeltaDisjoint = 2.0
+var DeltaWeights = 0.4
+var DeltaThreshold = 1.0
 
-StaleSpecies = 15;
+var StaleSpecies = 15
 
-MutateConnectionsChance = 0.25;
-PerturbChance = 0.90;
-CrossoverChance = 0.75;
-LinkMutationChance = 2.0;
-NodeMutationChance = 0.50;
-BiasMutationChance = 0.40;
-StepSize = 0.1;
-DisableMutationChance = 0.4;
-EnableMutationChance = 0.2;
+var MutateConnectionsChance = 0.25
+var PerturbChance = 0.90
+var CrossoverChance = 0.75
+var LinkMutationChance = 2.0
+var NodeMutationChance = 0.50
+var BiasMutationChance = 0.40
+var StepSize = 0.1
+var DisableMutationChance = 0.4
+var EnableMutationChance = 0.2
 
-TimeoutConstant = 20;
-WholeScriptTimeout = 6//60 // seconds
+var TimeoutConstant = 20
+var WholeScriptTimeout = 2//60 // seconds
 
 // ok, not quite a toolbox yet, not even a singleton, but we'll get there (if needed) (from toolbox.js)
 
@@ -39,7 +42,8 @@ var pool;
 var rightmost;
 var markedCells;
 var timeout;
-var timeElapsed = 0.0 // seconds
+var timeStarted = now() // miliseconds
+var timeLast = 0 // seconds
 
 var score = 0
 var goal = 1
@@ -48,7 +52,6 @@ var solution = 'no solution yet'
 // those are currently in the "global" scope, but only being used here (from main.js)
 var fpsinterval = 0;
 var mainLoopInterval = null;
-var keepTime = null;
 
 function pizza (str) {
     var lines = str.replace(/\n$/, '').split('\n')
@@ -100,13 +103,13 @@ function pizza (str) {
 
 function startMainLoop () {
     mainLoopInterval = setInterval(asyncMainLoop, fpsinterval)
-    keepTime = setInterval(function(){ timeElapsed += .1; }, 100)
 }
 
 function logScore () {
     var arg = Array.prototype.slice.call(arguments).concat([
         'score:', score, '  ',
-        'time elapsed:', timeElapsed.toFixed(2), '  '
+        '#time:', time().toFixed(3)+'s  ',
+        '#diff:', lastime().toFixed(3), '  ',
 //        '\n'+ solution
     ])
     return console.log.apply(console, arg)
@@ -115,7 +118,6 @@ function logScore () {
 function clearMainLoop () {
     logScore();
     clearInterval(mainLoopInterval);
-    clearInterval(keepTime);
 }
 
 // still no good error handling, sadly
@@ -145,7 +147,7 @@ function asyncMainLoop () { // infinite, async equivalent
         clearMainLoop()
     }
 
-    if (timeElapsed > WholeScriptTimeout) {
+    if (time() > WholeScriptTimeout) {
         console.log('time limit '+ WholeScriptTimeout +' reached! :(')
         clearMainLoop()
     }
@@ -195,7 +197,7 @@ function aiMainLoop () {
             "gen:", pool.generation, "  ",
             "species:", pool.currentSpecies, "  ",
             "genome:", pool.currentGenome, "  ",
-            "fitness:", fitness, "  "
+            "fitness:", fitness.toFixed(0), "  "
         )
 
         pool.currentSpecies = 0; // array bonds
@@ -887,7 +889,7 @@ function evaluateCurrent() {
     var species = pool.species[pool.currentSpecies];
     var genome = species.genomes[pool.currentGenome];
 
-    inputs = ActualInputs.slice();
+    var inputs = ActualInputs.slice();
     var outputs = evaluateNetwork(genome.network, inputs);
 /*
     inputs = getInputs();
@@ -1003,6 +1005,27 @@ function calculateNewInputs () {
     markedCells += 1; // dummy test
 }
 // */
+
+function now () {
+    let result
+    if (isNode) {
+        let hrtime = process.hrtime() // nanoseconds
+        result = hrtime[0] * 1000 + hrtime[1] / 1000000
+    } else {
+        result = performance.now() // miliseconds
+    }
+    return result
+}
+
+function time () {
+    return (now() - timeStarted) / 1000
+}
+
+function lastime () {
+    let last = timeLast
+    timeLast = time()
+    return timeLast - last
+}
 
 var example = "3 5 1 6\nTTTTT\nTMMMT\nTTTTT\n";
 var small = "6 7 1 5\nTMMMTTT\nMMMMTMM\nTTMTTMT\nTMMTMMM\nTTTTTTM\nTTTTTTM\n";
