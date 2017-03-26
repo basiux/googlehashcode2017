@@ -12,4 +12,23 @@ for the next few hours there was a new submitting system, but I was already almo
 
 I did try again a lot later, without any significant improvement. couldn't focus on searching for a solution ready online, didn't know what to look for. the problem is figuring out neighbors. if there are enough small ones, the current "solutionRanks" work better, which calculates a ranking value based on each file size (in each cache server) along with its score. if there are more big files, maybe the "solutionWeights" is better, which just calculate the score for each file, in each cache server.
 
-in any case, I figure it's better to focus on the pizza issue next as to work on what matters! the neat mariox ai. :)
+thinking on this test case, of a cache server trying to filter out which files to keep, helped me a great deal to get to this conclusion:
+
+fileSize    score   rank
+3           50      167
+2           10      50
+1           40      400
+1           30      300
+1           20      200
+1           16      160
+1           16      160
+1           16      160
+1           40      400
+1           40      400
+1           40      400
+4           60      150
+5           90      180
+5           80      160
+capacityCacheServer 10
+
+in any case, I figure it's better to focus on the pizza issue next as to work on what matters: the neat mariox ai! :)
