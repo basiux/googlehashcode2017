@@ -14,6 +14,7 @@ I did try again a lot later, without any significant improvement. couldn't focus
 
 thinking on this test case, of a cache server trying to filter out which files to keep, helped me a great deal to get to this conclusion:
 
+```
 fileSize    score   rank
 3           50      167
 2           10      50
@@ -30,5 +31,6 @@ fileSize    score   rank
 5           90      180
 5           80      160
 capacityCacheServer 10
+```
 
 in any case, I figure it's better to focus on the pizza issue next as to work on what matters: the neat mariox ai! :)
