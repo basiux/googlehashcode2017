@@ -1,14 +1,16 @@
 "use strict"
 const isNode = (typeof module !== 'undefined' && module.exports)
 
+if (isNode) {
+    const _ = require('./lodash.min') // after clonedeep on http://colintoh.com/blog/lodash-10-javascript-utility-functions-stop-rewriting
+}
+
 /*
 
-for now this is mostly parts taken from mariox many files
-it's also being adjusted to the pizza exercise
+almost everything taken from mariox many files
+adjusting for the pizza exercise
 
 // */
-
-const _ = require('./lodash.min') // after clonedeep on http://colintoh.com/blog/lodash-10-javascript-utility-functions-stop-rewriting
 
 //*
 var ActualInputs = []
@@ -38,10 +40,10 @@ var WholeScriptTimeout = 2//60 // seconds
 
 // ok, not quite a toolbox yet, not even a singleton, but we'll get there (if needed) (from toolbox.js)
 
-var pool;
-var rightmost;
-var markedCells;
-var timeout;
+var pool
+var rightmost
+var markedCells
+var timeout
 var timeStarted = now() // miliseconds
 var timeLast = 0 // seconds
 
@@ -50,27 +52,28 @@ var goal = 1
 var solution = 'no solution yet'
 
 // those are currently in the "global" scope, but only being used here (from main.js)
-var fpsinterval = 0;
-var mainLoopInterval = null;
+var fpsinterval = 0
+var mainLoopInterval = null
 
 function pizza (str) {
     var lines = str.replace(/\n$/, '').split('\n')
-    var config = lines[0].split(' ');
-    lines.shift();
-    goal = config[0] * config[1];
-    var minIngredients = config[2]; // per slice
-    var maxSlice = config[3]; // cells size
+    var config = lines[0].split(' ')
+    lines.shift()
+    goal = config[0] * config[1]
+    var minIngredients = config[2] // per slice
+    var maxSlice = config[3] // cells size
 
-    // like the mario screen, this should probably morph into a different screen as the game progress.
-    // maybe just setting -1 to cells that are already taken would be enough
+    // like the mario screen, this should probably morph into a different "screen" as the game progress
+    // perhaps just setting -1 to cells that are already taken would be enough
     ActualInputs = []
     lines.forEach(function(item){
         ActualInputs.push( item.replace(/M/g, 1).replace(/T/g, 0) )
-    });
+    })
     Inputs = ActualInputs.length + 1
+    //Inputs = goal + 1
 
-    // still need to figure out what the outputs need to be, and probably adjust the rest of neat around it
-    // right now this is meaningless and just as a place holder
+    // still need to figure out what the outputs need to be and adjust the rest.
+    // right now this is a meaningless place holder.
     ActualOutputs = [
         ' ',
         '0',
@@ -81,10 +84,8 @@ function pizza (str) {
         '6',
         '7',
         '8',
-        '9', // last command is being ignored, right now! :(
-    ];
-
-    //Inputs = goal + 1
+        '9', // last command is being ignored for some reason! :(
+    ]
     Outputs = ActualOutputs.length
 
     if ( isEmpty(pool) ) {
@@ -106,13 +107,14 @@ function startMainLoop () {
 }
 
 function logScore () {
-    var arg = Array.prototype.slice.call(arguments).concat([
+    let arg = Array.from(arguments).join(' ')
+    arg += [
         'score:', score, '  ',
         '#time:', time().toFixed(3)+'s  ',
         '#diff:', lastime().toFixed(3), '  ',
 //        '\n'+ solution
-    ])
-    return console.log.apply(console, arg)
+    ].join(' ')
+    return console.log(arg)
 }
 
 function clearMainLoop () {
