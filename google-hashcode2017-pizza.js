@@ -16,7 +16,7 @@ adjusting for the pizza exercise
 var ActualInputs = []
 var ActualOutputs = []
 var Inputs = ActualInputs.length + 1
-var Outputs = ActualOutputs.length
+var Outputs = ActualOutputs.length + 1
 
 var Population = 300 // species
 var DeltaDisjoint = 2.0
@@ -70,23 +70,20 @@ function pizza (str) {
         ActualInputs.push( item.replace(/M/g, 1).replace(/T/g, 0) )
     })
     Inputs = ActualInputs.length + 1
-    //Inputs = goal + 1
+    if (Inputs !== goal + 1) {
+        console.error('wtf, inputs not equal to goal!')
+    }
 
-    // still need to figure out what the outputs need to be and adjust the rest.
-    // right now this is a meaningless place holder.
-    ActualOutputs = [
-        ' ',
-        '0',
-        '1',
-        '3',
-        '4',
-        '5',
-        '6',
-        '7',
-        '8',
-        '9', // last command is being ignored for some reason! :(
-    ]
-    Outputs = ActualOutputs.length
+    // very unlike mario, the output will be either straight the final expected result or
+    // every possible point in the grid, like below
+    ActualOutputs = []
+    for (let row = 0; row < config[0]; row++) {
+        ActualOutputs.push([])
+        for (let col = 0; col < config[1]; col++) {
+            ActualOutputs[row][col] = 0 // one number to represent each group, which has to be squared
+        }
+    }
+    Outputs = ActualOutputs.length + 1
 
     if ( isEmpty(pool) ) {
         initializePool()
@@ -145,7 +142,7 @@ function clearMainLoop () {
 
 function asyncMainLoop () { // infinite, async equivalent
     if (score >= goal) {
-        console.log('goal reached! :)')
+        logScore('goal reached! :)')
         clearMainLoop()
     }
 
@@ -893,6 +890,7 @@ function evaluateCurrent() {
 
     var inputs = ActualInputs.slice();
     var outputs = evaluateNetwork(genome.network, inputs);
+    setOutputs(outputs)
 /*
     inputs = getInputs();
     controller = evaluateNetwork(genome.network, inputs);
@@ -905,6 +903,8 @@ function evaluateCurrent() {
             controller["KEY_UP"] = false;
             controller["KEY_DOWN"] = false;
     }
+
+    joypadSet(controller)
 // */
 }
 
@@ -1008,6 +1008,12 @@ function calculateNewInputs () {
 }
 // */
 
+function setOutputs () {
+    // this is where the output magic could happen
+    // it needs to validate the slices somehow
+    // and be allowed to be changed as the ai learns the results
+}
+
 function now () {
     let result
     if (isNode) {
@@ -1032,5 +1038,5 @@ function lastime () {
 var example = "3 5 1 6\nTTTTT\nTMMMT\nTTTTT\n";
 var small = "6 7 1 5\nTMMMTTT\nMMMMTMM\nTTMTTMT\nTMMTMMM\nTTTTTTM\nTTTTTTM\n";
 
-console.log( pizza(example) ); // 15
-// console.log( pizza(small) ); // 42
+console.log( pizza(example) ) // 15
+// console.log( pizza(small) ) // 42
