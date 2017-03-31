@@ -98,7 +98,7 @@ function pizza (str) {
 
     startMainLoop()
 
-    return solution
+    return solution // JSON.stringify(_.cloneDeep(pool.species)).length still doesn't work
 }
 
 function startMainLoop () {
