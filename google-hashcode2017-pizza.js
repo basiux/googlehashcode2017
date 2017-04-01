@@ -56,32 +56,43 @@ var fpsinterval = 0
 var mainLoopInterval = null
 
 function pizza (str) {
-    var lines = str.replace(/\n$/, '').split('\n')
-    var config = lines[0].split(' ')
+    let lines = str.replace(/\n$/, '').split('\n')
+    let config = lines[0].split(' ')
     lines.shift()
-    goal = config[0] * config[1]
-    var minIngredients = config[2] // per slice
-    var maxSlice = config[3] // cells size
+    let rows = Number(config[0])
+    let cols = Number(config[1])
+    let minIngredients = Number(config[2]) // per slice
+    let maxSlice = Number(config[3]) // cells size
+    goal = rows * cols
+    let mushrooms = 0
+    let tomatoes = 0
+    let slices = 0
 
     // like the mario screen, this should probably morph into a different "screen" as the game progress
     // perhaps just setting -1 to cells that are already taken would be enough
     ActualInputs = []
     lines.forEach(function(item){
-        ActualInputs.push( item.replace(/M/g, 1).replace(/T/g, 0) )
+        item
+            .replace(/M/g, x => {
+            mushrooms += 1
+            ActualInputs.push(1)
+        })
+            .replace(/T/g, x => {
+            tomatoes += 1
+            ActualInputs.push(0)
+        })
     })
     Inputs = ActualInputs.length + 1
-    if (Inputs !== goal + 1) {
-        console.error('wtf, inputs not equal to goal!')
+    if (Inputs - 1 !== goal) {
+        console.error('wtf, inputs not equal to goal!', Inputs, goal)
+        return
     }
+    slices = Math.floor(Math.min(mushrooms, tomatoes) / minIngredients)
 
-    // very unlike mario, the output will be either straight the final expected result or
-    // every possible point in the grid, like below
+    // not as unlike mario as it may seem, the output will be the final expected result
     ActualOutputs = []
-    for (let row = 0; row < config[0]; row++) {
-        ActualOutputs.push([])
-        for (let col = 0; col < config[1]; col++) {
-            ActualOutputs[row][col] = 0 // one number to represent each group, which has to be squared
-        }
+    for (let o = 0; o < slices; o++) {
+        ActualOutputs.push([0, 0, rows, cols])
     }
     Outputs = ActualOutputs.length + 1
 
@@ -89,8 +100,13 @@ function pizza (str) {
         initializePool()
     }
 
-    logScore(
+    console.log(
         'goal:', goal, '  ',
+        'slices:', slices, '  ',
+        'mushrooms:', mushrooms, '  ',
+        'tomatoes:', tomatoes, '  ',
+        'min ingredients:', minIngredients, '  ',
+        'max slice:', maxSlice, '  ',
         'time limit:', WholeScriptTimeout, '  '
     )
 
